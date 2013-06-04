@@ -96,6 +96,9 @@ function link() {
 }
 
 function build_vt() {
+	if [ ! -d $V8PATH ]; then
+		build_v8
+	fi
 	echo "$PREFIX build vt"
 	for FILE in $SOURCES
 	do
