@@ -56,25 +56,13 @@ FN(accept)
 
     {
         UNLOCK;
-        while (1) {
-            socklen_t sock_size = sizeof(struct sockaddr_in);
-            bzero(&their_addr, sizeof(their_addr));
-            fd = accept(sock, (struct sockaddr *)&their_addr, &sock_size);
-            if (fd > 0) {
-                break;
-            }
-            switch(errno) {
-                case EAGAIN:
-                case EINTR:
-                case ECONNABORTED:
-                    continue;
-                default:
-                    {
-                        THROW("accept() Error: %s", strerror(errno));
-                    }
-                    continue;
-            }
-        }
+        socklen_t sock_size = sizeof(struct sockaddr_in);
+        fd = accept(sock, (struct sockaddr *)&their_addr, &sock_size);
+
+#ifdef __APPLE__
+        int flag = 1;
+        setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag));
+#endif
     }
     Handle<Object>o = Object::New();
     OSETINT(o, fd, fd);
@@ -108,7 +96,11 @@ ENDFN
 
 #ifdef __APPLE__
 #define TCP_CORK TCP_NODELAY
-#endif
+// #define TCP_CORK TCP_NOPUSH
+FN(cork)
+    return Undefined();
+ENDFN
+#else
 FN(cork) 
     int fd = TOINT(args[0]),
         flag = TOINT(args[1]),
@@ -119,6 +111,7 @@ FN(cork)
     }
     RETURN_INT(ret);
 ENDFN
+#endif
 
 Handle<ObjectTemplate>init_net() {
     Handle<ObjectTemplate>o = ObjectTemplate::New();

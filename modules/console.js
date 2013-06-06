@@ -13,7 +13,7 @@
  * 
  */
 (function() {
-	var console = builtin.console;
+	var console = require('builtin.console'),
 	print_r = require('builtin/print_r');
 	exports = {
 		

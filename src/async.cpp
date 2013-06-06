@@ -1,7 +1,8 @@
 #include "vt.h"
+#include <errno.h>
 
 static inline fd_set *PTR(Handle<Value>v) {
-    return (fd_set *)TOPTR(v)''
+    return (fd_set *)TOPTR(v);
 }
 
 FN(alloc_fd_set)
@@ -57,7 +58,7 @@ FN(fd_isset)
         ret;
     fd_set *set = PTR(args[1]);
     {
-        UNLOCK
+        UNLOCK;
         ret = FD_ISSET(fd, set);
     }
     return set ? True() : False();
@@ -124,10 +125,52 @@ FN(select)
     return o;
 ENDFN
 
-FN(read)
+FN(readable)
+    int fd = TOINT(args[0]),
+        sec = TOINT(args[1]),
+        usec = TOINT(args[2]),
+        ret;
+    {
+        UNLOCK;
+        struct timeval tv;
+        tv.tv_sec = sec;
+        tv.tv_usec = usec;
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        ret = select(
+            fd+1,                           // nfds
+            &fds,                           // readfds
+            NULL,                           // writefds
+            NULL,                           // errorfds
+            (sec == -1) ? NULL : &tv        //timeout
+        );
+    }
+    if (ret == -1) {
+        THROW("readable error: %s", strerror(errno));
+    }
+    return ret ? True() : False();
 ENDFN
 
-FN(write)
+FN(writable)
+    int fd = TOINT(args[0]),
+        sec = TOINT(args[1]),
+        usec = TOINT(args[2]),
+        ret;
+    {
+        UNLOCK;
+        struct timeval tv;
+        tv.tv_sec = sec;
+        tv.tv_usec = usec;
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        ret = select(fd+1, NULL, &fds, NULL, (sec == -1) ? NULL : &tv);
+    }
+    if (ret == -1) {
+        THROW("writable error: %s", strerror(errno));
+    }
+    return ret ? True() : False();
 ENDFN
 
 FN(close)
@@ -149,8 +192,8 @@ Handle<ObjectTemplate> init_async() {
     OSETFN(o, fd_clr);
     OSETFN(o, fd_isset);
     OSETFN(o, select);
-    OSETFN(o, read);
-    OSETFN(o, write);
+    OSETFN(o, readable);
+    OSETFN(o, writable);
     OSETFN(o, close);
     return o;
 }

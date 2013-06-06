@@ -9,12 +9,6 @@
         Request = require('Request').Request,
         Response = require('Response').Response;
 
-var sss = [
-    'HTTP/1.1 200 OK',
-    'Content-type: text/plain',
-    'Content-length: 3'
-].join('\n') + '\n\nabc';
-
     function Child(serverSocket, fn) {
         this.on('exit', function() {
             log('exit');
@@ -25,45 +19,48 @@ var sss = [
             var sock = serverSocket.accept();
             serverSocket.mutex.unlock();
 
-            // sock.write(sss, sss.length);
-            // sock.destroy();
-            // continue;
-
             var is = new InputStream(sock.fd),
                 os = new OutputStream(sock.fd);
 
             var keepAlive = true;
             while (keepAlive) {
                 try {
-                    var request = new Request(is),
-                        response = new Response(os, request.proto);
+// var start = timer();
+                    var request = new Request(is);
+// log('> ' + sock.fd);
+// log(timer() - start);
+                    var response = new Response(os, request.proto);
+// log(timer() - start);
 
                     request.threadId = this.threadId;
 
-                    if (request.headers['connection']) {
-                        response.headers['Connection'] = 'Keep-Alive';
-                        response.headers['keep-alive'] = 'timeout: 5; max = 10000000';
+                    var connection = request.headers['connection'] || '',
+                        headers = response.headers;
+                    if (connection.toLowerCase() === 'keep-alive') {
+                        headers['Connection'] = 'Keep-Alive';
+                        headers['keep-alive'] = 'timeout: 5; max = 10000000';
                     }
                     else {
-                        response.headers['Connection'] = 'close';
+                        headers['Connection'] = 'close';
                         keepAlive = false;
                     }
+// log(timer() - start);
                     fn(request, response);
+// log(timer() - start);
+// log(request.uri);
                 }
                 catch (e) {
                     if (e === 'EOF') {
+                        // log('eof')
                         break;
                     }
+                    log(e.toString());
                     console.dir(e);
                 }
             }
-            log('is.destroy');
             is.destroy();
-            log('os.destroy');
             os.destroy();
-            log('sock.destroy');
             sock.destroy();
-            log('to accept');
         }
     }
 

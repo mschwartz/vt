@@ -84,12 +84,143 @@ FN(t)
     RETURN_STRING(buf);
 ENDFN
 
+//                  _            
+//                 | |           
+//  _ __ ___  _   _| |_ _____  __
+// | '_ ` _ \| | | | __/ _ \ \/ /
+// | | | | | | |_| | ||  __/>  < 
+// |_| |_| |_|\__,_|\__\___/_/\_\
+//
+
+FN(mutex_init)
+    pthread_mutex_t *mutex;
+    {
+        UNLOCK;
+        mutex = new pthread_mutex_t;
+        pthread_mutex_init(mutex, NULL);
+    }
+    RETURN_PTR(mutex);
+ENDFN
+
+FN(mutex_destroy)
+    pthread_mutex_t *mutex = (pthread_mutex_t *)TOPTR(args[0]);
+    {
+        UNLOCK;
+        pthread_mutex_destroy(mutex);
+        delete mutex;
+    }
+    return Undefined();
+ENDFN
+
+FN(mutex_lock)
+    pthread_mutex_t *mutex = (pthread_mutex_t *)TOPTR(args[0]);
+    int ret;
+    {
+        UNLOCK;
+        ret = pthread_mutex_lock(mutex);
+    }
+    RETURN_INT(ret);
+ENDFN
+
+FN(mutex_trylock)
+    pthread_mutex_t *mutex = (pthread_mutex_t *)TOPTR(args[0]);
+    int ret;
+    {
+        UNLOCK;
+        ret = pthread_mutex_trylock(mutex);
+    }
+    RETURN_INT(ret);
+ENDFN
+
+FN(mutex_unlock)
+    pthread_mutex_t *mutex = (pthread_mutex_t *)TOPTR(args[0]);
+    int ret;
+    {
+        UNLOCK;
+        ret = pthread_mutex_unlock(mutex);
+    }
+    RETURN_INT(ret);
+ENDFN
+
+//                      _ _ _   _
+//                     | (_) | (_)
+//   ___ ___  _ __   __| |_| |_ _  ___  _ __  ___ 
+//  / __/ _ \| '_ \ / _` | | __| |/ _ \| '_ \/ __|
+// | (_| (_) | | | | (_| | | |_| | (_) | | | \__ \
+//  \___\___/|_| |_|\__,_|_|\__|_|\___/|_| |_|___/
+//                                             
+
+FN(cond_init)
+    pthread_cond_t *cond;
+    {
+        UNLOCK;
+        cond = new pthread_cond_t;
+        pthread_cond_init(cond, NULL);
+    }
+    RETURN_PTR(cond);
+ENDFN
+
+FN(cond_destroy)
+    pthread_cond_t *cond = (pthread_cond_t *)TOPTR(args[0]);
+    {
+        UNLOCK;
+        pthread_cond_destroy(cond);
+        delete cond;
+    }
+ENDFN
+
+FN(cond_wait)
+    pthread_cond_t *cond = (pthread_cond_t *)TOPTR(args[0]);
+    pthread_mutex_t *mutex = (pthread_mutex_t *)TOPTR(args[1]);
+    int ret;
+    {
+        UNLOCK;
+        ret = pthread_cond_wait(cond, mutex);
+    }
+    RETURN_INT(ret);
+ENDFN
+
+FN(cond_signal)
+    pthread_cond_t *cond = (pthread_cond_t *)TOPTR(args[0]);
+    int ret;
+    {
+        UNLOCK;
+        ret = pthread_cond_signal(cond);
+    }
+    RETURN_INT(ret);
+ENDFN
+
+FN(cond_broadcast)
+    pthread_cond_t *cond = (pthread_cond_t *)TOPTR(args[0]);
+    int ret;
+    {
+        UNLOCK;
+        ret = pthread_cond_broadcast(cond);
+    }
+    RETURN_INT(ret);
+ENDFN
+
+
 Handle<ObjectTemplate>init_pthread() {
     Handle<ObjectTemplate>o = ObjectTemplate::New();
+    
     OSETFN(o, create);
     OSETFN(o, set_tid);
     OSETFN(o, exit);
     OSETFN(o, tid);
     OSETFN(o, t);
+
+    OSETFN(o, mutex_init);
+    OSETFN(o, mutex_destroy);
+    OSETFN(o, mutex_lock);
+    OSETFN(o, mutex_trylock);
+    OSETFN(o, mutex_unlock);
+
+    OSETFN(o, cond_init);
+    OSETFN(o, cond_destroy);
+    OSETFN(o, cond_wait);
+    OSETFN(o, cond_signal);
+    OSETFN(o, cond_broadcast);
+
     return o;
 }

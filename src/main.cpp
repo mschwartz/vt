@@ -1,6 +1,7 @@
 #include "vt.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include <sys/time.h>
 
 Handle<Context> context;
 Isolate *main_isolate;
@@ -19,7 +20,14 @@ char *readFile (const char *fn) {
     return file;
 }
 
-FN(log) 
+FN(timer)
+    timeval t;
+    gettimeofday(&t, NULL);
+    RETURN_INT(t.tv_sec * 1000000 + t.tv_usec);
+    // RETURN_INT(mach_absolute_time() & 0x7fffffff);
+ENDFN
+
+FN(log)
     char *s = strdup(TOSTRING(args[0]));
 	{
         UNLOCK;
@@ -58,19 +66,23 @@ ENDFN
 
 Handle<ObjectTemplate>builtins() {
     extern Handle<ObjectTemplate>init_console();
+    extern Handle<ObjectTemplate>init_process();
     extern Handle<ObjectTemplate>init_v8();
     extern Handle<ObjectTemplate>init_mem();
     extern Handle<ObjectTemplate>init_pthread();
     extern Handle<ObjectTemplate>init_fs();
     extern Handle<ObjectTemplate>init_net();
+    extern Handle<ObjectTemplate>init_async();
 
     Handle<ObjectTemplate>o = ObjectTemplate::New();
     OSETO(o, console, init_console());
+    OSETO(o, process, init_process());
     OSETO(o, v8, init_v8());
     OSETO(o, mem, init_mem());
     OSETO(o, pthread, init_pthread());
     OSETO(o, fs, init_fs());
     OSETO(o, net, init_net());
+    OSETO(o, async, init_async());
     return o;
 }
 
@@ -137,6 +149,7 @@ int main(int argc, char* argv[]) {
     HandleScope handle_scope(ISOLATE);
 
     Handle<ObjectTemplate>global = ObjectTemplate::New();
+    OSETFN(global, timer);
     OSETFN(global, log);
     OSETFN(global, include);
     OSETO(global, builtin, builtins());
@@ -149,7 +162,7 @@ int main(int argc, char* argv[]) {
     Context::Scope context_scope(CONTEXT);
     {
         LOCK;
-        Locker::StartPreemption(0);
+        Locker::StartPreemption(10000);
         TryCatch tryCatch;
         Handle<Script>init = Script::New(String::New("global=this; module = {}; include('builtin/all.js');"), String::New("builtin"));
         init->Run();

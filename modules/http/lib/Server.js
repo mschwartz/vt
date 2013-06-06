@@ -12,11 +12,12 @@
         this.fn = fn;
     }
     Server.prototype.extend({
-        listen: function(port, bindAddress) {
+        listen: function(port, bindAddress, numChildren) {
+            numChildren = numChildren || 50;
             var serverSocket = new Socket();
             serverSocket.listen(port, bindAddress, 100);
             serverSocket.mutex = new Mutex();
-            for (var i=0; i<25; i++) {
+            for (var i=0; i<numChildren; i++) {
                 new Thread(Child, serverSocket, this.fn).start();
             }
         }

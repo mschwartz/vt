@@ -6,15 +6,31 @@
 #include <string>
 
 FN(error) 
-    RETURN_STRING(strerror(errno));
+    char *s;
+    {
+        UNLOCK;
+        s = strerror(errno);
+    }
+    RETURN_STRING(s);
 ENDFN
 
 FN(chdir)
-    RETURN_INT(chdir(TOSTRING(args[0])));
+    char *path = strdup(TOSTRING(args[0]));
+    int ret;
+    {
+        UNLOCK;
+        ret = chdir(path);
+    }
+    delete [] path;
+    RETURN_INT(ret);
 ENDFN
 
 FN(getcwd)
-    char *cwd = getcwd(NULL, 0);
+    char *cwd;
+    {
+        UNLOCK;
+        cwd = getcwd(NULL, 0);
+    }
     Handle<String>s = String::New(cwd);
     delete [] cwd;
     RETURN(s);

@@ -35,9 +35,7 @@
             return pthread_destroy_mutex(this._mutex);
         },
         lock: function() {
-            debug('about to lock');
             var ret = pthread.mutex_lock(this._mutex);
-            debug('lock ' + ret);
             var t = Thread.currentThread();
             this.owner = t;
             if (t) {
@@ -55,9 +53,7 @@
             return ret;
         },
         unlock: function() {
-            debug('about to unlock');
             var ret = pthread.mutex_unlock(this._mutex);
-            debug('unlock ' + ret);
             var t = Thread.currentThread();
             this.owner = null;
             if (t) {

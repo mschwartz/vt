@@ -7,8 +7,8 @@ trap 'cd $PWD' INT TERM EXIT
 PREFIX=">>>>>>>>>>>>>>>>>>"
 
 # which version to build: debug or release
-BUILD=debug
-#BUILD=release
+# BUILD=debug
+BUILD=release
 
 # determine OS and other useful information
 if [ "$OSTYPE" = "darwin12" ]; then
@@ -65,23 +65,24 @@ else
 fi
 
 CC="g++"
-CCFLAGS="-fno-rtti -fno-exceptions"
+CCFLAGS="-D_REENTRANT -fno-rtti -fno-exceptions"
 INCLUDE="-I$V8PATH/include -I$V8PATH/src"
 
 LD="g++"
-LDFLAGS="-rdynamic -L$V8PATH/out/$V8TARGET"
-
+LDFLAGS="-D_REENTRANT -rdynamic -L$V8PATH/out/$V8TARGET"
+LDLIBS="$LDLIBS -lpthread"
 if [ "$BUILD" = "debug" ]; then
-	CC="$CC -g"
-	LD="$LD -g"
+	CCFLAGS="-g $CCFLAGS"
+	LDFLAGS="-g $LDFLAGS"
 fi
 
 ### Set up files to be compiled
 
-SOURCES="main console v8 mem pthread fs net"
+SOURCES="main console process v8 mem pthread fs net async"
 
 function compile() {
 	if [ "$1.cpp" -nt "$1.o" ] || [ "vt.h" -nt "$1.o" ]; then
+		echo ">>> CXX $1.cpp"
 		$CC $CCFLAGS $INCLUDE -c $1.cpp
 	fi
 }
@@ -92,6 +93,7 @@ function link() {
 	do
 		OBJ="$OBJ $FILE.o"
 	done
+	echo ">>> LD vt"
 	$LD -o vt $LDFLAGS $OBJ $LDLIBS $LDRPATH
 }
 
@@ -130,7 +132,8 @@ function clean() {
 cd src
 case $1 in
 	clean) clean ;;
-	clean_vt) clean_vt;;
+	clean_vt) clean_vt ;;
+	build_v8) build_v8 ;;
 	all) build_all ;;
 	*) build_vt ;;
 esac

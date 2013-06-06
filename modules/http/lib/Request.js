@@ -3,8 +3,10 @@
     "use strict";
 
     function Request(inputStream) {
-        var line;
-        line = inputStream.readLine();
+        var line,
+            readLine = inputStream.readLine;
+
+        line = readLine.apply(inputStream);
         if (line === false) {
             throw 'EOF';
         }
@@ -17,7 +19,8 @@
         var headers = {};
         var done = false;
         for (var i=0; i<64; i++) {
-            line = inputStream.readLine();
+            line = readLine.apply(inputStream);
+            // line = inputStream.readLine();
             if (line === false) {
                 throw 'EOF';
             }
@@ -29,7 +32,8 @@
             headers[parts[0].toLowerCase()] = parts[1];
         }
         while (!done) {
-            line = inputStream.readLine();
+            line = readLine.apply(inputStream);
+            // line = inputStream.readLine();
             if (line === false) {
                 throw 'EOF';
             }

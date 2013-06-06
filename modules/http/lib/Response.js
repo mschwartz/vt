@@ -65,17 +65,19 @@
             this.status = status;
         },
         end: function(s) {
-            var out = this.outputStream;
-            out.write(this.proto + ' ' + this.status + ' ' + responseCodeText[this.status] + '\r\n');
-            out.write('Date: ' + new Date().toGMTString() + '\r\n');
-            for (var key in this.headers) {
-                if (this.headers.hasOwnProperty(key)) {
-                    var value = this.headers[key];
-                    out.write(key + ': ' + value + '\r\n');
+            var out = this.outputStream,
+                headers = this.headers,
+                buf = '';
+
+            buf += this.proto + ' ' + this.status + ' ' + responseCodeText[this.status] + '\r\n';
+            buf += 'Date: ' + new Date().toGMTString() + '\r\n';
+            for (var key in headers) {
+                if (headers.hasOwnProperty(key)) {
+                    buf += key + ': ' + headers[key] + '\r\n';
                 }
             }
-            out.write('Content-Length: ' + s.length + '\r\n\r\n');
-            out.write(s);
+            buf += 'Content-Length: ' + s.length + '\r\n\r\n';
+            out.write(buf + s);
             out.flush();
         }
     });
