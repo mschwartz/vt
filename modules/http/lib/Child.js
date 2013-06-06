@@ -45,7 +45,7 @@
                         keepAlive = false;
                     }
 // log(timer() - start);
-                    fn(request, response);
+                    fn.call(this, request, response);
 // log(timer() - start);
 // log(request.uri);
                 }
