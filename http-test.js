@@ -13,4 +13,6 @@ http.createServer(function(req, res) {
     counter++;
 }).listen(1337, '127.0.0.1');
 console.log('Server running at http://127.0.0.1:1337/');
-while(1) { process.sleep(111); }
+//builtin.pthread._exit();
+//while (1) { process.sleep(1000); }
+

@@ -1,3 +1,4 @@
+include('builtin/atexit.js');
 include('builtin/print_r.js');
 include('builtin/date.js');
 include('builtin/extensions.js');

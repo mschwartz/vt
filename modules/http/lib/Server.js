@@ -6,7 +6,8 @@
     var Child = require('Child').Child,
         Thread = require('threads').Thread,
         Mutex = require('threads').Mutex,
-        Socket = require('socket').Socket;
+        Socket = require('socket').Socket,
+        process = require('builtin.process');
 
     function Server(fn) {
         this.fn = fn;
@@ -20,6 +21,9 @@
             for (var i=0; i<numChildren; i++) {
                 new Thread(Child, serverSocket, this.fn).start();
             }
+            atexit(function() {
+                while (true) { process.sleep(1); }
+            });
         }
     });
 

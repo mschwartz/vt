@@ -199,6 +199,11 @@ int main(int argc, char* argv[]) {
                 exit(v->IntegerValue());
             }
         }
+
+        // Handle<Object>builtin = Handle<Object>Cast(context->Global()->Get(String::New("builtin")));
+        // process_val = builtin->Get(String::New(atExit))
+        Handle<Script>cleanup = Script::Compile(String::New("_atexit_()"), String::New("cleanup"));
+        cleanup->Run();
     }
     return 0;
 }
