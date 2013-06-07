@@ -28,7 +28,7 @@ else
 	V8TARGET=x64.release
 fi
 
-function build_v8() {
+build_v8() {
 	if [ -d $V8PATH ]; then
 		echo "$PREFIX update v8"
 		cd $V8PATH && svn update && cd ..
@@ -44,7 +44,7 @@ function build_v8() {
 	cd ..
 }
 
-function clean_v8() {
+clean_v8() {
 	if [ -d $V8PATH ]; then
 		echo "$PREFIX clean v8"
 		cd $V8PATH && make clean >/dev/null 2>&1 && cd ..
@@ -80,14 +80,14 @@ fi
 
 SOURCES="main console process v8 mem pthread fs net async"
 
-function compile() {
+compile() {
 	if [ "$1.cpp" -nt "$1.o" ] || [ "vt.h" -nt "$1.o" ]; then
 		echo ">>> CXX $1.cpp"
 		$CC $CCFLAGS $INCLUDE -c $1.cpp
 	fi
 }
 
-function link() {
+link() {
 	OBJ=""
 	for FILE in $SOURCES
 	do
@@ -97,7 +97,7 @@ function link() {
 	$LD -o vt $LDFLAGS $OBJ $LDLIBS $LDRPATH
 }
 
-function build_vt() {
+build_vt() {
 	if [ ! -d $V8PATH ]; then
 		build_v8
 	fi
@@ -111,20 +111,20 @@ function build_vt() {
 	# $LD -o vt $LDFLAGS main.o $LDLIBS $LDRPATH
 }
 
-function clean_vt() {
+clean_vt() {
 	echo "$PREFIX clean vt"
 	rm -f *.o vt
 }
 
 #########
 
-function build_all() {
+build_all() {
 	echo "$PREFIX build"
 	build_v8
 	build_vt
 }
 
-function clean() {
+clean() {
 	clean_v8
 	clean_vt
 }
